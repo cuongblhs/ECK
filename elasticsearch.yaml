@@ -28,7 +28,7 @@ spec:
               memory: 8Gi
           env:
           - name: ES_JAVA_OPTS
-            value: "-Xms8g -Xmx8g"
+            value: "-Xms6g -Xmx6g"
           - name: cluster.initial_master_nodes
             value: "smartlog-es-node-0,smartlog-es-node-1,smartlog-es-node-2"
         nodeSelector:
