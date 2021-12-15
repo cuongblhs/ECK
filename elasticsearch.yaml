@@ -10,8 +10,8 @@ spec:
   version: 7.16.0
   volumeClaimDeletePolicy: DeleteOnScaledownOnly
   nodeSets:
-  - name: node
-    count: 3
+  - name: zone-a
+    count: 1
     podTemplate:
       spec:
         initContainers:
@@ -30,9 +30,111 @@ spec:
           - name: ES_JAVA_OPTS
             value: "-Xms6g -Xmx6g"
           - name: cluster.initial_master_nodes
-            value: "smartlog-es-node-0,smartlog-es-node-1,smartlog-es-node-2"
-        nodeSelector:
-          app: elasticsearch
+            value: "smartlog-es-zone-a-0,smartlog-es-zone-b-0,smartlog-es-zone-c-0"
+        affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+              - matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - elasticsearch
+              - matchExpressions:
+                - key: topology.kubernetes.io/zone
+                  operator: In
+                  values:
+                  - ap-southeast-1a
+    volumeClaimTemplates:
+    - metadata:
+        name: elasticsearch-data
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 100Gi
+        storageClassName: sc-elastic
+  - name: zone-b
+    count: 1
+    podTemplate:
+      spec:
+        initContainers:
+        - name: sysctl
+          securityContext:
+            privileged: true
+          command: ['sh', '-c', 'sysctl -w vm.max_map_count=262144']
+        containers:
+        - name: elasticsearch
+          resources:
+            limits:
+              memory: 16Gi
+            requests:
+              memory: 8Gi
+          env:
+          - name: ES_JAVA_OPTS
+            value: "-Xms6g -Xmx6g"
+          - name: cluster.initial_master_nodes
+            value: "smartlog-es-zone-a-0,smartlog-es-zone-b-0,smartlog-es-zone-c-0"
+        affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+              - matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - elasticsearch
+              - matchExpressions:
+                - key: topology.kubernetes.io/zone
+                  operator: In
+                  values:
+                  - ap-southeast-1b
+    volumeClaimTemplates:
+    - metadata:
+        name: elasticsearch-data
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 100Gi
+        storageClassName: sc-elastic
+  - name: zone-c
+    count: 1
+    podTemplate:
+      spec:
+        initContainers:
+        - name: sysctl
+          securityContext:
+            privileged: true
+          command: ['sh', '-c', 'sysctl -w vm.max_map_count=262144']
+        containers:
+        - name: elasticsearch
+          resources:
+            limits:
+              memory: 16Gi
+            requests:
+              memory: 8Gi
+          env:
+          - name: ES_JAVA_OPTS
+            value: "-Xms6g -Xmx6g"
+          - name: cluster.initial_master_nodes
+            value: "smartlog-es-zone-a-0,smartlog-es-zone-b-0,smartlog-es-zone-c-0"
+        affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+              - matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - elasticsearch
+              - matchExpressions:
+                - key: topology.kubernetes.io/zone
+                  operator: In
+                  values:
+                  - ap-southeast-1c
     volumeClaimTemplates:
     - metadata:
         name: elasticsearch-data
